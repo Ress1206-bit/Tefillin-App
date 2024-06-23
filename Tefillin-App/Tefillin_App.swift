@@ -6,12 +6,19 @@
 //
 
 import SwiftUI
+import Firebase
 
 @main
-struct Tefillin_AppApp: App {
+struct Tefillin_App: App {
+    
+    init(){
+        FirebaseApp.configure()
+    }
+    
+    
     var body: some Scene {
         WindowGroup {
-            ContentView()
+            LaunchView()
         }
     }
 }
