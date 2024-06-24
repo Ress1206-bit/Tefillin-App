@@ -19,6 +19,7 @@ struct Post: Identifiable {
 struct User: Identifiable {
     var id: String?
     var username: String
+    var name: String
     var email: String
     var profilePictureUrl: String
     var accountCreated: Date

@@ -10,14 +10,15 @@ import FirebaseAuth
 
 struct LaunchView: View {
     
-    @State var loggedIn = false
+    @Environment(ContentModel.self) private var contentModel
+    
     @State var loginFormShowing = false
     @State var createFormShowing = false
     
     
     var body: some View {
         
-        if !loggedIn {
+        if contentModel.loggedIn == false {
             
             VStack {
                 
@@ -28,7 +29,7 @@ struct LaunchView: View {
                 } label: {
                     Text("Sign In")
                 }
-                .sheet(isPresented: $loginFormShowing, onDismiss: checkLogin) {
+                .sheet(isPresented: $loginFormShowing, onDismiss: contentModel.checkLogin) {
                     LoginForm(formShowing: $loginFormShowing)
                 }
                 
@@ -38,24 +39,22 @@ struct LaunchView: View {
                 } label: {
                     Text("Create Account")
                 }
-                .sheet(isPresented: $createFormShowing, onDismiss: checkLogin) {
+                .sheet(isPresented: $createFormShowing, onDismiss: contentModel.checkLogin) {
                     CreateAccountForm(formShowing: $createFormShowing)
                 }
 
             }
             .onAppear {
-                checkLogin()
+                contentModel.checkLogin()
             }
         }
         else {
             //Show logged in View
-            HomePage(loggedIn: $loggedIn)
+            HomePage()
         }
     }
     
-    func checkLogin() {
-        loggedIn = Auth.auth().currentUser == nil ? false : true
-    }
+    
 }
 
 #Preview {
