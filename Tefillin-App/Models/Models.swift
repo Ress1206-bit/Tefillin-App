@@ -7,12 +7,12 @@
 
 import Foundation
 
-struct Post: Identifiable {
+struct Post: Identifiable, Hashable {
     var id: String?
     var userId: String
     var caption: String
-    var photoUrl: String
-    var timestamp: Date
+    var imageReference: String
+    var timePosted: Date
     var groupIds: [String]
 }
 

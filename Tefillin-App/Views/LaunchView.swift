@@ -59,4 +59,5 @@ struct LaunchView: View {
 
 #Preview {
     LaunchView()
+        .environment(ContentModel())
 }

@@ -17,27 +17,50 @@ struct HomePage: View {
     @State private var firstname: String = ""
     
     var body: some View {
-        VStack(spacing: 20){
-            if user != nil {
-                Text("Welcome \(String(user!.name))")
+        if contentModel.loggedIn {
+            TabView {
+                FeedView()
+                    .tabItem {
+                        Image(systemName: "house.fill")
+                    }
                 
-                Button {
-                    try! Auth.auth().signOut()
-                    
-                    contentModel.checkLogin()
-                } label: {
-                    Text("Sign Out")
+                UploadPostView()
+                    .tabItem {
+                        Image(systemName: "plus.app")
+                    }
+                
+                VStack(spacing: 20){
+                    if user != nil {
+                        Text("Welcome \(String(user!.name))")
+                        
+                        Button {
+                            try! Auth.auth().signOut()
+                            
+                            contentModel.checkLogin()
+                        } label: {
+                            Text("Sign Out")
+                        }
+                    }
+                }
+                .onAppear {
+                    Task {
+                        user = await contentModel.getUserData()
+                    }
+                }
+                .tabItem {
+                    Image(systemName: "person.crop.circle.fill")
                 }
             }
         }
-        .onAppear {
-            Task {
-                user = await contentModel.getUserData()
-            }
+        else {
+            LaunchView()
         }
+        
+        
     }
 }
 
 #Preview {
     HomePage()
+        .environment(ContentModel())
 }
