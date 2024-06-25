@@ -50,6 +50,9 @@ struct FeedView: View {
                 }
             }
         }
+        .background {
+            Color.white
+        }
         .onAppear {
             Task {
                 

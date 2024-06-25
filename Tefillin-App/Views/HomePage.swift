@@ -19,7 +19,9 @@ struct HomePage: View {
     var body: some View {
         if contentModel.loggedIn {
             TabView {
-                FeedView()
+                //FeedView()
+                
+                GroupsView()
                     .tabItem {
                         Image(systemName: "house.fill")
                     }

@@ -32,6 +32,9 @@
 		6B6B938B2C28FE9100AAAE93 /* ImageUploadView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6B6B938A2C28FE9000AAAE93 /* ImageUploadView.swift */; };
 		6B6B938D2C290B0A00AAAE93 /* UploadPostView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6B6B938C2C290B0A00AAAE93 /* UploadPostView.swift */; };
 		6B6B938F2C2911AB00AAAE93 /* FirebaseStorage in Frameworks */ = {isa = PBXBuildFile; productRef = 6B6B938E2C2911AB00AAAE93 /* FirebaseStorage */; };
+		6BDD37BA2C2A2641006BB4EE /* GroupsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6BDD37B92C2A2641006BB4EE /* GroupsView.swift */; };
+		6BDD37BC2C2A2806006BB4EE /* AddGroupView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6BDD37BB2C2A2806006BB4EE /* AddGroupView.swift */; };
+		6BDD37C02C2A66B4006BB4EE /* GroupView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6BDD37BF2C2A66B4006BB4EE /* GroupView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -50,6 +53,9 @@
 		6B6B93802C28D7F300AAAE93 /* ContentModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentModel.swift; sourceTree = "<group>"; };
 		6B6B938A2C28FE9000AAAE93 /* ImageUploadView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImageUploadView.swift; sourceTree = "<group>"; };
 		6B6B938C2C290B0A00AAAE93 /* UploadPostView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UploadPostView.swift; sourceTree = "<group>"; };
+		6BDD37B92C2A2641006BB4EE /* GroupsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GroupsView.swift; sourceTree = "<group>"; };
+		6BDD37BB2C2A2806006BB4EE /* AddGroupView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AddGroupView.swift; sourceTree = "<group>"; };
+		6BDD37BF2C2A66B4006BB4EE /* GroupView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GroupView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -132,11 +138,10 @@
 		6B6B937D2C28D7B800AAAE93 /* Views */ = {
 			isa = PBXGroup;
 			children = (
-				6B6B93472C287D7600AAAE93 /* HomePage.swift */,
-				6B2F74B42C2931840011AAFD /* FeedView.swift */,
-				6B2F74B62C2932510011AAFD /* PostView.swift */,
 				6B6B93732C28CDCD00AAAE93 /* LaunchView.swift */,
-				6B2F74B32C2930200011AAFD /* Upload */,
+				6B6B93472C287D7600AAAE93 /* HomePage.swift */,
+				6BDD37C22C2A68E3006BB4EE /* Posts */,
+				6BDD37C12C2A68CA006BB4EE /* Groups */,
 				6B6B937E2C28D7C700AAAE93 /* Forms */,
 			);
 			path = Views;
@@ -157,6 +162,26 @@
 				6B6B93802C28D7F300AAAE93 /* ContentModel.swift */,
 			);
 			path = ViewModels;
+			sourceTree = "<group>";
+		};
+		6BDD37C12C2A68CA006BB4EE /* Groups */ = {
+			isa = PBXGroup;
+			children = (
+				6BDD37BB2C2A2806006BB4EE /* AddGroupView.swift */,
+				6BDD37B92C2A2641006BB4EE /* GroupsView.swift */,
+				6BDD37BF2C2A66B4006BB4EE /* GroupView.swift */,
+			);
+			path = Groups;
+			sourceTree = "<group>";
+		};
+		6BDD37C22C2A68E3006BB4EE /* Posts */ = {
+			isa = PBXGroup;
+			children = (
+				6B2F74B42C2931840011AAFD /* FeedView.swift */,
+				6B2F74B62C2932510011AAFD /* PostView.swift */,
+				6B2F74B32C2930200011AAFD /* Upload */,
+			);
+			path = Posts;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -248,12 +273,15 @@
 			files = (
 				6B2F74B52C2931840011AAFD /* FeedView.swift in Sources */,
 				6B6B93482C287D7600AAAE93 /* HomePage.swift in Sources */,
+				6BDD37C02C2A66B4006BB4EE /* GroupView.swift in Sources */,
 				6B6B936B2C2897CC00AAAE93 /* LoginForm.swift in Sources */,
 				6B6B93742C28CDCD00AAAE93 /* LaunchView.swift in Sources */,
 				6B6B938B2C28FE9100AAAE93 /* ImageUploadView.swift in Sources */,
 				6B6B93462C287D7600AAAE93 /* Tefillin_App.swift in Sources */,
+				6BDD37BA2C2A2641006BB4EE /* GroupsView.swift in Sources */,
 				6B6B936D2C289C2100AAAE93 /* CreateAccountForm.swift in Sources */,
 				6B6B93812C28D7F300AAAE93 /* ContentModel.swift in Sources */,
+				6BDD37BC2C2A2806006BB4EE /* AddGroupView.swift in Sources */,
 				6B6B938D2C290B0A00AAAE93 /* UploadPostView.swift in Sources */,
 				6B6B93702C28AAD500AAAE93 /* Models.swift in Sources */,
 				6B2F74B72C2932510011AAFD /* PostView.swift in Sources */,

@@ -26,12 +26,12 @@ struct User: Identifiable {
     var postIds: [String]
 }
 
-struct Group: Identifiable {
+struct Group: Identifiable, Hashable {
     var id: String?
     var name: String
-    var description: String
     var members: [String]
     var postIds: [String]
+    var imageReference: String
     var groupCreated: Date
 
 }

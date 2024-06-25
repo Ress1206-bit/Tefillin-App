@@ -28,6 +28,7 @@ struct PostView: View {
                 Image(systemName: "person.crop.circle.fill")
                 Text(username)
                 Spacer()
+                //Text(post?.timePosted.description ?? "")
             }
             .padding(.leading)
             .padding(.vertical, 3)
@@ -66,7 +67,7 @@ struct PostView: View {
                         .padding(.trailing, 50)
                         .font(.system(size: 25))
                         .onTapGesture {
-                            heartFill = true
+                            heartFill.toggle()
                         }
                 } else {
                     Image(systemName: "heart.fill")
@@ -75,7 +76,7 @@ struct PostView: View {
                         .font(.system(size: 25))
                         .foregroundStyle(.red)
                         .onTapGesture {
-                            heartFill = false
+                            heartFill.toggle()
                         }
                 }
                 

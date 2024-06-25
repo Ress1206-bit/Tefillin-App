@@ -21,6 +21,7 @@ class ContentModel {
     
     
     var retrievedPosts: [Post] = []
+    var retrievedGroups: [Group] = []
     
     
     func checkLogin() {
@@ -57,7 +58,7 @@ class ContentModel {
         }
     }
     
-    func uploadImage(image: UIImage, userID: String, completion: @escaping (String?) -> Void) {
+    func uploadPostImage(image: UIImage, userID: String, completion: @escaping (String?) -> Void) {
         
         //reference Storage
         let storageReference = Storage.storage().reference()
@@ -86,6 +87,35 @@ class ContentModel {
         
     }
     
+    func uploadGroupImage(image: UIImage, groupID: String, completion: @escaping (String?) -> Void) {
+        
+        //reference Storage
+        let storageReference = Storage.storage().reference()
+        
+        //turn Image into Data
+        let imageData = image.jpegData(compressionQuality: 0.8)
+        
+        guard imageData != nil else {
+            return
+        }
+        
+        //specify file path and name
+        let path = "images/groups/\(groupID)/\(UUID().uuidString).jpg"
+        let fileReference = storageReference.child(path)
+
+        // upload data
+        fileReference.putData(imageData!, metadata: nil) { metadata, error in
+            if error == nil && metadata != nil {
+                // Confirm Path
+                completion(path)
+            } else {
+                // Handle the error
+                completion(nil)
+            }
+        }
+        
+    }
+    
     func uploadPost(caption: String, image: UIImage, groupIds: [String]) {
         // Check that the user is logged in
         guard let currentUser = Auth.auth().currentUser else {
@@ -95,7 +125,7 @@ class ContentModel {
         let userID = currentUser.uid
         let postID = UUID().uuidString
         
-        uploadImage(image: image, userID: userID) { path in
+        uploadPostImage(image: image, userID: userID) { path in
             if let path = path {
                 self.db.collection("posts").document(postID).setData([
                     "user_id": userID,
@@ -211,6 +241,83 @@ class ContentModel {
                     continuation.resume(returning: nil)
                 }
             }
+        }
+    }
+    
+    func createGroup(groupName: String, image: UIImage) {
+        
+        guard let currentUser = Auth.auth().currentUser else {
+            return
+        }
+        
+        let groupID = UUID().uuidString
+        
+        uploadGroupImage(image: image, groupID: groupID) { path in
+            if let path = path {
+                self.db.collection("groups").document(groupID).setData([
+                    "groupName": groupName,
+                    "members": [currentUser.uid],
+                    "post_ids": [],
+                    "image_reference": path,
+                    "time_created": Date()
+                ]) { error in
+                    if error != nil {
+                        print(error!)
+                    }
+                    else {
+                        self.db.collection("users").document(currentUser.uid).updateData(["group_ids": FieldValue.arrayUnion([groupID])]) { error in
+                            if error != nil {
+                                print(error!)
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        
+        
+    }
+    
+    func fetchGroupBySearch(searchField: String) async {
+        // Check that the user is logged in
+        guard let _ = Auth.auth().currentUser else {
+            return
+        }
+        
+        do {
+            let snapshot = try await self.db.collection("groups")
+                .order(by: "time_created", descending: true)
+                .getDocuments()
+            
+            for document in snapshot.documents {
+                
+                let data = document.data()
+                
+                let name = data["groupName"] as? String ?? ""
+                
+
+                
+                if !name.lowercased().contains(searchField.lowercased()) && searchField != "" {
+                    continue
+                }
+                
+                
+                let members = data["members"] as? [String] ?? []
+                let postIds = data["post_ids"] as? [String] ?? []
+                let groupCreated = data["time_created"] as? Date ?? Date()
+                let imageReference = data["image_reference"] as? String ?? ""
+                
+                let group = Group(name: name, members: members, postIds: postIds, imageReference: imageReference, groupCreated: groupCreated)
+                
+                if searchField == "" && retrievedGroups.count < 5 {
+                    retrievedGroups.append(group)
+                }
+                else {
+                    retrievedGroups.append(group)
+                }
+            }
+        } catch {
+            print("Error getting documents: \(error)")
         }
     }
     
