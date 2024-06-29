@@ -23,11 +23,12 @@ struct User: Identifiable {
     var email: String
     var profilePictureUrl: String
     var accountCreated: Date
+    var groupIds: [String]
     var postIds: [String]
 }
 
 struct Group: Identifiable, Hashable {
-    var id: String?
+    var id: String
     var name: String
     var members: [String]
     var postIds: [String]

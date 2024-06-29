@@ -21,9 +21,18 @@ struct HomePage: View {
             TabView {
                 //FeedView()
                 
-                GroupsView()
+                GroupFeedView()
                     .tabItem {
                         Image(systemName: "house.fill")
+                    }
+                VStack {
+                    GroupsView()
+                    Divider()
+                    AddGroupView()
+                    Spacer()
+                }
+                    .tabItem {
+                        Image(systemName: "person.3.fill")
                     }
                 
                 UploadPostView()

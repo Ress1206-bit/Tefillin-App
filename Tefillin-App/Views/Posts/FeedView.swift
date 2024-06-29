@@ -11,6 +11,8 @@ struct FeedView: View {
     
     @Environment(ContentModel.self) private var contentModel
     
+    var groupID: String?
+    
     @State var posts: [Post] = []
     @State var username: String?
     @State var isLoading = false
@@ -32,12 +34,14 @@ struct FeedView: View {
                                 .onChange(of: progressGeo.frame(in: .global).minY, { oldValue, newValue in
                                     if newValue < 800 && oldValue >= 800 {
                                         Task {
-                                            await contentModel.fetchPosts(amount: 2)
-                                            if posts.count == contentModel.retrievedPosts.count {
-                                                endOfFeed = true
-                                            }
-                                            else {
-                                                posts = contentModel.retrievedPosts
+                                            if let groupID = groupID {
+                                                await contentModel.fetchPosts(amount: 2, groupID: groupID)
+                                                if posts.count == contentModel.retrievedPosts[groupID]?.count {
+                                                    endOfFeed = true
+                                                }
+                                                else {
+                                                    posts = contentModel.retrievedPosts[groupID] ?? []
+                                                }
                                             }
                                         }
                                     }
@@ -58,8 +62,10 @@ struct FeedView: View {
                 
                 let firstLoadAmount = 3
                 
-                await contentModel.fetchPosts(amount: 3)
-                posts = contentModel.retrievedPosts
+                if let groupID = groupID {
+                    await contentModel.fetchPosts(amount: 3, groupID: groupID)
+                    posts = contentModel.retrievedPosts[groupID] ?? []
+                }
                 
                 if posts.count < firstLoadAmount {
                     endOfFeed = true
@@ -69,7 +75,7 @@ struct FeedView: View {
             
         }
         .onDisappear {
-            contentModel.retrievedPosts = []
+            contentModel.retrievedPosts = [:]
             posts = []
             endOfFeed = false
         }

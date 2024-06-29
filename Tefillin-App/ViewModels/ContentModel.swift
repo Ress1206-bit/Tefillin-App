@@ -20,7 +20,7 @@ class ContentModel {
     let db = Firestore.firestore()
     
     
-    var retrievedPosts: [Post] = []
+    var retrievedPosts: [String: [Post]] = [:] //{groupID: [posts]}
     var retrievedGroups: [Group] = []
     
     
@@ -31,7 +31,7 @@ class ContentModel {
     func getUserData() async -> User {
         // Check that the user is logged in
         guard let currentUser = Auth.auth().currentUser else {
-            return User(id: "", username: "", name: "error", email: "", profilePictureUrl: "", accountCreated: Date(), postIds: [])
+            return User(id: "", username: "", name: "error", email: "", profilePictureUrl: "", accountCreated: Date(), groupIds: [], postIds: [])
         }
         
         let userID = currentUser.uid
@@ -40,7 +40,7 @@ class ContentModel {
         do {
             let snapshot = try await userDoc.getDocument()
             guard let data = snapshot.data() else {
-                return User(id: userID, username: "", name: "error", email: "", profilePictureUrl: "", accountCreated: Date(), postIds: [])
+                return User(id: userID, username: "", name: "error", email: "", profilePictureUrl: "", accountCreated: Date(), groupIds: [], postIds: [])
             }
             
             let username = data["username"] as? String ?? ""
@@ -48,13 +48,14 @@ class ContentModel {
             let email = data["email"] as? String ?? ""
             let profilePictureUrl = data["profile_picture_url"] as? String ?? ""
             let accountCreated = (data["accountCreated"] as? Timestamp)?.dateValue() ?? Date()
+            let groupIds = data["group_ids"] as? [String] ?? []
             let postIds = data["post_ids"] as? [String] ?? []
             
-            return User(id: userID, username: username, name: name, email: email, profilePictureUrl: profilePictureUrl, accountCreated: accountCreated, postIds: postIds)
+            return User(id: userID, username: username, name: name, email: email, profilePictureUrl: profilePictureUrl, accountCreated: accountCreated, groupIds: groupIds, postIds: postIds)
             
         } catch {
             print("Error getting document: \(error)")
-            return User(id: userID, username: "", name: "error", email: "", profilePictureUrl: "", accountCreated: Date(), postIds: [])
+            return User(id: userID, username: "", name: "error", email: "", profilePictureUrl: "", accountCreated: Date(), groupIds: [], postIds: [])
         }
     }
     
@@ -132,7 +133,7 @@ class ContentModel {
                     "caption": caption,
                     "image_reference": path,
                     "time_posted": Date(),
-                    "groups_ids": []
+                    "groups_ids": groupIds
                 ]) { error in
                     if error != nil {
                         print(error!)
@@ -145,19 +146,29 @@ class ContentModel {
                                 print(error)
                             }
                         }
+                        
+                        for groupID in groupIds {
+                            self.db.collection("groups").document(groupID).updateData([
+                                "post_ids": FieldValue.arrayUnion([postID])
+                            ]) { error in
+                                if let error = error {
+                                    print(error)
+                                }
+                            }
+                        }
                     }
                 }
             }
         }
     }
         
-    func fetchPosts(amount: Int) async {
+    func fetchPosts(amount: Int, groupID: String) async {
         // Check that the user is logged in
         guard let _ = Auth.auth().currentUser else {
             return
         }
 
-        let amountOfPostsRetrieved = retrievedPosts.count
+        var amountOfPostsRetrieved = retrievedPosts[groupID]?.count ?? 0
         
         do {
             let snapshot = try await self.db.collection("posts")
@@ -177,16 +188,31 @@ class ContentModel {
                     break
                 }
                 
+                
+                
                 let data = document.data()
+                
+                
+                let groupsIds = data["groups_ids"] as? [String] ?? []
+                
+                if !groupsIds.contains(groupID) {
+                    amountOfPostsRetrieved += 1
+                    continue
+                }
+                
+                
                 let caption = data["caption"] as? String ?? ""
                 let userId = data["user_id"] as? String ?? ""
                 let imageReference = data["image_reference"] as? String ?? ""
-                let groupsIds = data["groups_ids"] as? [String] ?? []
                 let timePosted = data["time_posted"] as? Date ?? Date()
                 
                 let post = Post(userId: userId, caption: caption, imageReference: imageReference, timePosted: timePosted, groupIds: groupsIds)
                 
-                retrievedPosts.append(post)
+                if retrievedPosts[groupID] != nil {
+                    retrievedPosts[groupID]?.append(post)
+                } else {
+                    retrievedPosts[groupID] = [post]
+                }
             }
         } catch {
             print("Error getting documents: \(error)")
@@ -196,7 +222,7 @@ class ContentModel {
     func fetchUserInfo(userID: String) async -> User{
         // Check that the user is logged in
         guard let _ = Auth.auth().currentUser else {
-            return User(id: "", username: "", name: "error", email: "", profilePictureUrl: "", accountCreated: Date(), postIds: [])
+            return User(id: "", username: "", name: "error", email: "", profilePictureUrl: "", accountCreated: Date(), groupIds: [], postIds: [])
         }
 
         let userDoc = Firestore.firestore().collection("users").document(userID)
@@ -204,7 +230,7 @@ class ContentModel {
         do {
             let snapshot = try await userDoc.getDocument()
             guard let data = snapshot.data() else {
-                return User(id: userID, username: "", name: "error", email: "", profilePictureUrl: "", accountCreated: Date(), postIds: [])
+                return User(id: userID, username: "", name: "error", email: "", profilePictureUrl: "", accountCreated: Date(), groupIds: [], postIds: [])
             }
             
             let username = data["username"] as? String ?? ""
@@ -212,13 +238,14 @@ class ContentModel {
             let email = data["email"] as? String ?? ""
             let profilePictureUrl = data["profile_picture_url"] as? String ?? ""
             let accountCreated = (data["accountCreated"] as? Timestamp)?.dateValue() ?? Date()
+            let groupIds = data["group_ids"] as? [String] ?? []
             let postIds = data["post_ids"] as? [String] ?? []
             
-            return User(id: userID, username: username, name: name, email: email, profilePictureUrl: profilePictureUrl, accountCreated: accountCreated, postIds: postIds)
+            return User(id: userID, username: username, name: name, email: email, profilePictureUrl: profilePictureUrl, accountCreated: accountCreated, groupIds: groupIds, postIds: postIds)
             
         } catch {
             print("Error getting document: \(error)")
-            return User(id: userID, username: "", name: "error", email: "", profilePictureUrl: "", accountCreated: Date(), postIds: [])
+            return User(id: userID, username: "", name: "error", email: "", profilePictureUrl: "", accountCreated: Date(), groupIds: [], postIds: [])
         }
     }
     
@@ -301,13 +328,13 @@ class ContentModel {
                     continue
                 }
                 
-                
+                let groupID = document.documentID
                 let members = data["members"] as? [String] ?? []
                 let postIds = data["post_ids"] as? [String] ?? []
                 let groupCreated = data["time_created"] as? Date ?? Date()
                 let imageReference = data["image_reference"] as? String ?? ""
                 
-                let group = Group(name: name, members: members, postIds: postIds, imageReference: imageReference, groupCreated: groupCreated)
+                let group = Group(id: groupID, name: name, members: members, postIds: postIds, imageReference: imageReference, groupCreated: groupCreated)
                 
                 if searchField == "" && retrievedGroups.count < 5 {
                     retrievedGroups.append(group)
@@ -320,5 +347,76 @@ class ContentModel {
             print("Error getting documents: \(error)")
         }
     }
+    
+    func joinGroup(groupID: String) {
+        // Check that the user is logged in
+        guard let currentUser = Auth.auth().currentUser else {
+            return
+        }
+        
+        let userID = currentUser.uid
+        
+        self.db.collection("groups").document(groupID).updateData([
+            "members": FieldValue.arrayUnion([userID])
+        ]) { error in
+            if let error = error {
+                print(error)
+            }
+            else {
+                self.db.collection("users").document(userID).updateData([
+                    "group_ids": FieldValue.arrayUnion([groupID])
+                ]) { error in
+                    if let error = error {
+                        print(error)
+                    }
+                }
+            }
+        }
+    }
+    
+    func fetchUserGroups() async -> [Group] {
+        // Check that the user is logged in
+        guard let currentUser = Auth.auth().currentUser else {
+            return []
+        }
+        
+        var userGroups: [Group] = []
+        
+        do {
+            let userSnapshot = try await db.collection("users").document(currentUser.uid).getDocument()
+            
+            guard let data = userSnapshot.data() else {
+                return []
+            }
+            
+            guard let groupIDs = data["group_ids"] as? [String] else {
+                return []
+            }
+            
+            for groupID in groupIDs {
+                let groupSnapshot = try await db.collection("groups").document(groupID).getDocument()
+                
+                guard let groupData = groupSnapshot.data() else {
+                    return []
+                }
+                
+                let groupName = groupData["groupName"] as? String ?? ""
+                let imageReference = groupData["image_reference"] as? String ?? ""
+                let members = groupData["members"] as? [String] ?? []
+                let postIds = groupData["post_ids"] as? [String] ?? []
+                let timeCreated = groupData["time_created"] as? Date ?? Date()
+                
+                let group = Group(id: groupID, name: groupName, members: members, postIds: postIds, imageReference: imageReference, groupCreated: timeCreated)
+                
+                userGroups.append(group)
+            }
+            
+        } catch {
+            return []
+        }
+
+        return userGroups
+    }
+
     
 }

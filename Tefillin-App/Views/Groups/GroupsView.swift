@@ -41,7 +41,10 @@ struct GroupsView: View {
             Divider()
             ScrollView {
                 ForEach(groups, id: \.self){ group in
-                    GroupView(group: group)
+                    GroupView(group: group, groupViewScale: 1)
+                        .onTapGesture(perform: {
+                            contentModel.joinGroup(groupID: group.id)
+                        })
                 }
             }
             .scrollContentBackground(.hidden)
