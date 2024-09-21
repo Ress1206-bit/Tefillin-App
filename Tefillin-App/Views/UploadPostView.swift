@@ -21,6 +21,7 @@ struct UploadPostView: View {
     @State private var selectedImage: UIImage?
     @State private var caption: String = ""
     @State var searchedForGroupsUpload: Bool = false
+    @State private var showAlert = false
     
     var body: some View {
         if searchedForGroupsUpload {
@@ -34,13 +35,12 @@ struct UploadPostView: View {
                         .padding(.top, 50)
                     
                     Text("You're not in any groups yet")
-                        .font(.title)
-                        .fontWeight(.bold)
+                        .font(.custom("Avenir-Heavy", size: 24))
                         .padding(.horizontal)
                         .multilineTextAlignment(.center)
                     
                     Text("Join a group to stay updated with the latest posts and connect with others.")
-                        .font(.body)
+                        .font(.custom("Avenir", size: 16))
                         .foregroundColor(.gray)
                         .padding(.horizontal)
                         .multilineTextAlignment(.center)
@@ -50,7 +50,7 @@ struct UploadPostView: View {
                         print("Join a group tapped")
                     }) {
                         Text("Join a Group")
-                            .fontWeight(.bold)
+                            .font(.custom("Avenir-Heavy", size: 18))
                             .frame(maxWidth: .infinity)
                             .padding()
                             .background(Color.blue)
@@ -70,37 +70,65 @@ struct UploadPostView: View {
                 }
             }
             else {
-                VStack {
+                VStack(spacing: 20) {
                     ImageUploadView(selectedImage: $selectedImage)
                     
-                    TextField("Caption", text: $caption)
-                        .textFieldStyle(.roundedBorder)
+                    TextField("Enter a caption...", text: $caption)
+                        .font(.custom("Avenir", size: 18))
                         .padding()
+                        .background(Color(.systemGray6))
+                        .cornerRadius(10)
+                        .padding(.horizontal)
                     
                     Button(action: {
                         showGroupSelector = true
                     }) {
-                        Text("Select Groups to Post to")
-                            .fontWeight(.bold)
+                        Text(selectedGroupIDs.isEmpty ? "Select Groups" : "Groups Selected (\(selectedGroupIDs.count))")
+                            .font(.custom("Avenir-Heavy", size: 18))
                             .padding()
-                            .background(Color.blue)
+                            .frame(maxWidth: .infinity)
+                            .background(selectedGroupIDs.isEmpty ? Color.accentDarkBlue : Color.accentDarkBlue)
                             .foregroundColor(.white)
                             .cornerRadius(10)
+                            .padding(.horizontal)
                     }
-                    .padding()
                     
                     Button(action: {
-                        if let selectedImage = selectedImage {
+                        if selectedGroupIDs.isEmpty {
+                            showAlert = true
+                        } else if let selectedImage = selectedImage {
                             Task {
                                 contentModel.uploadPost(caption: caption, image: selectedImage, groupIds: selectedGroupIDs)
                             }
                         }
-                    }, label: {
-                        Text("Upload Image")
-                    })
+                    }) {
+                        Text("Upload Post")
+                            .font(.custom("Avenir-Heavy", size: 18))
+                            .frame(maxWidth: .infinity)
+                            .padding()
+                            .background(selectedImage == nil || selectedGroupIDs.isEmpty ? Color.gray.opacity(0.7) : Color.accentBlue)
+                            .foregroundColor(.white)
+                            .cornerRadius(10)
+                            .padding(.horizontal)
+                    }
+                    .disabled(selectedImage == nil || selectedGroupIDs.isEmpty)
+                    
+                    Spacer()
                 }
                 .sheet(isPresented: $showGroupSelector) {
                     GroupSelectorView(groups: groups, selectedGroupIDs: $selectedGroupIDs)
+                }
+                .alert(isPresented: $showAlert) {
+                    Alert(title: Text("Select a Group"), message: Text("Please select at least one group to post to."), dismissButton: .default(Text("OK")))
+                }
+                .onDisappear {
+                    selectedGroupIDs = []
+                    showGroupSelector = false
+                    
+                    selectedImage = nil
+                    caption = ""
+                    searchedForGroupsUpload = false
+                    showAlert = false
                 }
             }
         }
@@ -113,7 +141,6 @@ struct UploadPostView: View {
                     }
                 }
         }
-        
     }
 }
 
@@ -129,9 +156,9 @@ struct GroupSelectorView: View {
                     selectedGroupIDs = groups.map { $0.id }
                 }) {
                     Text("Select All")
-                        .fontWeight(.bold)
+                        .font(.custom("Avenir-Heavy", size: 18))
                         .padding()
-                        .background(Color.blue)
+                        .background(Color.accentBlue)
                         .foregroundColor(.white)
                         .cornerRadius(10)
                 }
@@ -165,6 +192,7 @@ struct MultipleSelectionRow: View {
     var body: some View {
         HStack {
             Text(group.name)
+                .font(.custom("Avenir", size: 16))
             Spacer()
             if isSelected {
                 Image(systemName: "checkmark")
@@ -185,7 +213,6 @@ struct MultipleSelectionRow: View {
         .shadow(radius: 1)
     }
 }
-
 
 #Preview {
     UploadPostView()
