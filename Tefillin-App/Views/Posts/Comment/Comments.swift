@@ -5,6 +5,7 @@
 //  Created by Adam Ress on 8/6/24.
 //
 
+
 import SwiftUI
 
 struct CommentsView: View {
@@ -17,13 +18,16 @@ struct CommentsView: View {
     @State var postID: String?
     
     @State private var showingTypeMode = false
+    @State private var showReportAlert = false
+    @State private var selectedComment: Comment?
+    @State private var reportReason: String = ""
     
     @Binding var sheetHeight: Double
     
     var body: some View {
         NavigationView {
-            VStack{
-                ZStack{
+            VStack {
+                ZStack {
                     HStack {
                         Spacer()
                         Text("\(comments.count) comments")
@@ -54,8 +58,15 @@ struct CommentsView: View {
                                         .padding(.leading, 5)
                                 }
                                 Spacer()
+                                Button(action: {
+                                    selectedComment = comment
+                                    showReportAlert = true
+                                }) {
+                                    Image(systemName: "ellipsis")
+                                        .padding(.trailing)
+                                }
                             }
-                            .padding(.leading, 10)                                
+                            .padding(.leading, 10)
                         }
                     }
                 }
@@ -114,7 +125,6 @@ struct CommentsView: View {
                         .shadow(radius: 3)
                         .padding(.trailing, 30)
                     }
-                    
                 }
                 .padding()
                 
@@ -123,6 +133,18 @@ struct CommentsView: View {
                 }
             }
             .navigationBarHidden(true)
+        }
+        .alert("Report Comment", isPresented: $showReportAlert) {
+            TextField("Reason (optional)", text: $reportReason)
+            Button("Report", role: .destructive) {
+                if let comment = selectedComment {
+                    contentModel.reportComment(comment, reason: reportReason)
+                }
+                reportReason = ""
+            }
+            Button("Cancel", role: .cancel) { }
+        } message: {
+            Text("Are you sure you want to report this comment? Reported content will be reviewed within 24 hours. If deemed objectionable, the content will be removed, and the user may be ejected from the platform.")
         }
         .onAppear {
             if postID != nil {

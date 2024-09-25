@@ -37,7 +37,7 @@ struct FeedView: View {
                                     if newValue < 800 && oldValue >= 800 {
                                         Task {
                                             if let groupID = groupID {
-                                                let newPosts = await contentModel.fetchPosts(amountToGet: 2, amountRecievied: posts.count, groupID: groupID)
+                                                let newPosts = await contentModel.fetchPosts(amountToGet: 2, amountReceived: posts.count, groupID: groupID)
                                                 
                                                 if newPosts.count == 0 {
                                                     endOfFeed.toggle()
@@ -67,7 +67,7 @@ struct FeedView: View {
                 endOfFeed = false
                 
                 if let groupID = groupID {
-                    posts = await contentModel.fetchPosts(amountToGet: 2, amountRecievied: 0, groupID: groupID)
+                    posts = await contentModel.fetchPosts(amountToGet: 2, amountReceived: 0, groupID: groupID)
                 }
             }
         }

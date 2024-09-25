@@ -128,7 +128,8 @@ struct CreateAccountForm: View {
                         "name": name,
                         "profile_picture_url": "",
                         "account_created": Date(),
-                        "post_ids": []
+                        "post_ids": [],
+                        "agreedToEULA": false
                     ]) { error in
                         if let error = error {
                             errorMessage = error.localizedDescription

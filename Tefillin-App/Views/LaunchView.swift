@@ -13,9 +13,9 @@ struct LaunchView: View {
     @Environment(ContentModel.self) private var contentModel
     @Environment(\.colorScheme) var colorScheme
     
-    @State var loginFormShowing = false
-    @State var createFormShowing = false
-    @State var isAnimating = false
+    @State private var loginFormShowing = false
+    @State private var createFormShowing = false
+    @State private var isAnimating = false
     
     var body: some View {
         if contentModel.loggedIn == false {
@@ -132,13 +132,11 @@ struct LaunchView: View {
                 }
             }
         }
+        else if contentModel.agreedToEULA == false {
+            EULAView()
+        }
         else {
             HomePage()
         }
     }
-}
-
-#Preview {
-    LaunchView()
-        .environment(ContentModel())
 }

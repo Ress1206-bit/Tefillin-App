@@ -13,24 +13,19 @@ import FirebaseStorage
 @Observable
 class ContentModel {
     
-    // Authentication
     var loggedIn = false
+    var agreedToEULA = false
     
-    // Reference to Cloud Firestore database
     let db = Firestore.firestore()
     
     var retrievedGroups: [Group] = []
-    
-    
     var currentGroupID = ""
-    
     
     func checkLogin() {
         loggedIn = Auth.auth().currentUser == nil ? false : true
     }
     
     func getUserData() async -> User {
-        // Check that the user is logged in
         guard let currentUser = Auth.auth().currentUser else {
             return User(id: "", username: "", name: "error", email: "", profilePictureUrl: "", accountCreated: Date(), groupIds: [], postIds: [])
         }
@@ -61,68 +56,55 @@ class ContentModel {
     }
     
     func uploadPostImage(image: UIImage, userID: String, completion: @escaping (String?) -> Void) {
-        
-        //reference Storage
+
         let storageReference = Storage.storage().reference()
-        
+
         //turn Image into Data
         let imageData = image.jpegData(compressionQuality: 0.8)
-        
+
         guard imageData != nil else {
             return
         }
-        
-        //specify file path and name
+
         let path = "images/posts/\(userID)/\(UUID().uuidString).jpg"
         let fileReference = storageReference.child(path)
 
-        // upload data
         fileReference.putData(imageData!, metadata: nil) { metadata, error in
             if error == nil && metadata != nil {
-                // Confirm Path
                 completion(path)
             } else {
-                // Handle the error
                 completion(nil)
             }
         }
-        
+
     }
     
+    // Upload post image to Firebase Storage
     func uploadGroupImage(image: UIImage, groupID: String, completion: @escaping (String?) -> Void) {
-        
-        //reference Storage
+
         let storageReference = Storage.storage().reference()
-        
-        //turn Image into Data
+
         let imageData = image.jpegData(compressionQuality: 0.8)
-        
+
         guard imageData != nil else {
             return
         }
-        
-        //specify file path and name
+
         let path = "images/groups/\(groupID)/\(UUID().uuidString).jpg"
         let fileReference = storageReference.child(path)
 
-        // upload data
         fileReference.putData(imageData!, metadata: nil) { metadata, error in
             if error == nil && metadata != nil {
-                // Confirm Path
                 completion(path)
             } else {
-                // Handle the error
                 completion(nil)
             }
         }
-        
+
     }
     
     func uploadPost(caption: String, image: UIImage, groupIds: [String]) {
-        
         for groupId in groupIds {
-            
-            // Check that the user is logged in
             guard let currentUser = Auth.auth().currentUser else {
                 return
             }
@@ -141,8 +123,7 @@ class ContentModel {
                     ]) { error in
                         if error != nil {
                             print(error!)
-                        }
-                        else {
+                        } else {
                             self.db.collection("users").document(userID).updateData([
                                 "post_ids": FieldValue.arrayUnion([postID])
                             ]) { error in
@@ -165,8 +146,7 @@ class ContentModel {
         }
     }
     
-    func fetchPosts(amountToGet: Int, amountRecievied: Int, groupID: String) async -> [Post] {
-        
+    func fetchPosts(amountToGet: Int, amountReceived: Int, groupID: String) async -> [Post] {
         var retrievedPosts: [Post] = []
         var amountSkipped = 0
 
@@ -174,35 +154,37 @@ class ContentModel {
             return []
         }
         
+        let blockedUsers = await fetchBlockedUsers()
+
         do {
             let snapshot = try await self.db.collection("posts")
                 .order(by: "time_posted", descending: true)
                 .getDocuments()
 
-            for (index, document) in snapshot.documents.enumerated() {
-                
+            for document in snapshot.documents {
                 if retrievedPosts.count == amountToGet {
                     break
                 }
                 
                 let data = document.data()
-
                 let retrievedGroupsId = data["groups_id"] as? String ?? ""
 
                 if retrievedGroupsId != groupID {
                     continue
                 }
                 
-                if amountSkipped < amountRecievied {
+                if amountSkipped < amountReceived {
                     amountSkipped += 1
                     continue
                 }
-                    
-                    
-                    
-                    
+                
                 let caption = data["caption"] as? String ?? ""
                 let userId = data["user_id"] as? String ?? ""
+                
+                if blockedUsers.contains(userId) {
+                    continue
+                }
+                
                 let imageReference = data["image_reference"] as? String ?? ""
                 let timePosted = data["time_posted"] as? Date ?? Date()
                 let postID = document.documentID
@@ -222,12 +204,15 @@ class ContentModel {
     func fetchUserPosts(userPostIds: [String]) async -> [Post] {
         var posts: [Post] = []
 
+        let blockedUsers = await fetchBlockedUsers()
+
         do {
             for postId in userPostIds {
                 let postDoc = try await db.collection("posts").document(postId).getDocument()
                 
                 guard let data = postDoc.data(),
                       let userId = data["user_id"] as? String,
+                      !blockedUsers.contains(userId),
                       let caption = data["caption"] as? String,
                       let imageReference = data["image_reference"] as? String,
                       let timePosted = (data["time_posted"] as? Timestamp)?.dateValue(),
@@ -246,7 +231,6 @@ class ContentModel {
     }
 
     func fetchUserInfo(userID: String) async -> User {
-        // Check that the user is logged in
         guard let _ = Auth.auth().currentUser else {
             return User(id: "", username: "", name: "error", email: "", profilePictureUrl: "", accountCreated: Date(), groupIds: [], postIds: [])
         }
@@ -298,13 +282,13 @@ class ContentModel {
     }
     
     func createGroup(groupName: String, image: UIImage) {
-        
+
         guard let currentUser = Auth.auth().currentUser else {
             return
         }
-        
+
         let groupID = UUID().uuidString
-        
+
         uploadGroupImage(image: image, groupID: groupID) { path in
             if let path = path {
                 self.db.collection("groups").document(groupID).setData([
@@ -327,12 +311,12 @@ class ContentModel {
                 }
             }
         }
-        
-        
+
+
     }
+
     
     func fetchGroupBySearch(searchField: String) async {
-        // Check that the user is logged in
         guard let _ = Auth.auth().currentUser else {
             return
         }
@@ -343,13 +327,9 @@ class ContentModel {
                 .getDocuments()
             
             for document in snapshot.documents {
-                
                 let data = document.data()
-                
                 let name = data["groupName"] as? String ?? ""
-                
 
-                
                 if !name.lowercased().contains(searchField.lowercased()) && searchField != "" {
                     continue
                 }
@@ -364,8 +344,7 @@ class ContentModel {
                 
                 if searchField == "" && retrievedGroups.count < 5 {
                     retrievedGroups.append(group)
-                }
-                else {
+                } else {
                     retrievedGroups.append(group)
                 }
             }
@@ -375,7 +354,6 @@ class ContentModel {
     }
     
     func joinGroup(groupID: String) {
-        // Check that the user is logged in
         guard let currentUser = Auth.auth().currentUser else {
             return
         }
@@ -387,8 +365,7 @@ class ContentModel {
         ]) { error in
             if let error = error {
                 print(error)
-            }
-            else {
+            } else {
                 self.db.collection("users").document(userID).updateData([
                     "group_ids": FieldValue.arrayUnion([groupID])
                 ]) { error in
@@ -401,7 +378,6 @@ class ContentModel {
     }
     
     func fetchUserGroups() async -> [Group] {
-        // Check that the user is logged in
         guard let currentUser = Auth.auth().currentUser else {
             return []
         }
@@ -444,6 +420,43 @@ class ContentModel {
         return userGroups
     }
     
+
+    func blockUser(_ userID: String) {
+        guard let currentUserID = Auth.auth().currentUser?.uid else { return }
+
+        db.collection("users").document(currentUserID).updateData([
+            "blocked_users": FieldValue.arrayUnion([userID])
+        ]) { error in
+            if let error = error {
+                print("Error blocking user: \(error)")
+            } else {
+                print("User blocked successfully")
+            }
+        }
+    }
+    
+
+    func unblockUser(_ userID: String) {
+        guard let currentUserID = Auth.auth().currentUser?.uid else { return }
+
+        db.collection("users").document(currentUserID).updateData([
+            "blocked_users": FieldValue.arrayRemove([userID])
+        ]) { error in
+            if let error = error {
+                print("Error unblocking user: \(error)")
+            } else {
+                print("User unblocked successfully")
+            }
+        }
+    }
+
+    
+    func fetchBlockedUsers() async -> [String] {
+        guard let currentUserID = Auth.auth().currentUser?.uid else { return [] }
+        let userDoc = try? await db.collection("users").document(currentUserID).getDocument()
+        return userDoc?.data()?["blocked_users"] as? [String] ?? []
+    }
+
     func addCommentToPost(text: String, postID: String) {
         guard let currentUser = Auth.auth().currentUser else {
             print("User not logged in")
@@ -459,8 +472,7 @@ class ContentModel {
             "time_posted": Timestamp(date: Date())
         ]
         
-        // Add the comment to the "comments" collection
-        Firestore.firestore().collection("comments").document(commentID).setData(commentData) { error in
+        db.collection("comments").document(commentID).setData(commentData) { error in
             if let error = error {
                 print("Error adding comment: \(error)")
             } else {
@@ -470,15 +482,13 @@ class ContentModel {
     }
     
     func fetchCommentsForPost(postID: String) async throws -> [Comment] {
-
-        let snapshot = try await Firestore.firestore().collection("comments")
+        let snapshot = try await db.collection("comments")
             .order(by: "time_posted", descending: false)
             .getDocuments()
 
         var comments: [Comment] = []
         
         for document in snapshot.documents {
-            
             let data = document.data()
             let commentPostID = data["post_id"] as? String ?? ""
             
@@ -498,6 +508,46 @@ class ContentModel {
         
         return comments
     }
-
     
+    func reportPost(_ post: Post, reason: String?) {
+            let reportID = UUID().uuidString
+            let reportData: [String: Any] = [
+                "post_id": post.id ?? "",
+                "reported_by": Auth.auth().currentUser?.uid ?? "",
+                "reason": reason ?? "Not specified",
+                "time_reported": Timestamp(date: Date())
+            ]
+
+            db.collection("reports").document(reportID).setData(reportData) { error in
+                if let error = error {
+                    print("Error reporting post: \(error)")
+                } else {
+                    print("Post reported successfully")
+                }
+            }
+    }
+    
+    func reportComment(_ comment: Comment, reason: String?) {
+        let reportID = UUID().uuidString
+        let reportData: [String: Any] = [
+            "comment_id": comment.id,
+            "post_id": comment.postID,
+            "reported_by": Auth.auth().currentUser?.uid ?? "",
+            "reason": reason ?? "Not specified",
+            "time_reported": Timestamp(date: Date())
+        ]
+
+        db.collection("comment_reports").document(reportID).setData(reportData) { error in
+            if let error = error {
+                print("Error reporting comment: \(error)")
+            } else {
+                print("Comment reported successfully")
+            }
+        }
+    }
+    
+    func agreeToEULA() {
+        agreedToEULA = true
+    }
+
 }

@@ -13,7 +13,6 @@ struct GroupFeedView: View {
     
     @Binding var selectedTab: Int
     
-    
     @State var groups: [Group] = []
     @State var searchedForGroups: Bool = false
     @State private var selectedIndex = 0
@@ -136,9 +135,4 @@ struct PageControl: View {
             }
         }
     }
-}
-
-#Preview {
-    GroupFeedView(selectedTab: Binding.constant(0), groups: [])
-        .environment(ContentModel())
 }

@@ -17,52 +17,54 @@ struct HomePage: View {
     
     @State private var selectedTab: Int = 0
     
+    @State var agreedToEULA = true
+    
     var body: some View {
         if contentModel.loggedIn {
-            TabView(selection: $selectedTab) {
-                GroupFeedView(selectedTab: $selectedTab)
-                    .tabItem {
-                        Image(systemName: "house.fill")
+            if !agreedToEULA {
+                EULAView(agreedToEULA: $agreedToEULA)
+            } else {
+                TabView(selection: $selectedTab) {
+                    GroupFeedView(selectedTab: $selectedTab)
+                        .tabItem {
+                            Image(systemName: "house.fill")
+                        }
+                        .tag(0)
+                    
+                    UploadPostView(selectedTab: $selectedTab)
+                        .tabItem {
+                            Image(systemName: "plus.app")
+                        }
+                        .tag(1)
+                    
+                    VStack {
+                        GroupsView(selectedTab: $selectedTab)
+                        Spacer()
                     }
-                    .tag(0)
-                
-                UploadPostView(selectedTab: $selectedTab)
                     .tabItem {
-                        Image(systemName: "plus.app")
+                        Image(systemName: "person.3.fill")
                     }
-                    .tag(1)
-                
-                VStack {
-                    GroupsView(selectedTab: $selectedTab)
-                    //Divider()
-                    //AddGroupView()
-                    Spacer()
+                    .tag(2)
+                    
+                    TefillinEducationView()
+                        .tabItem {
+                            Image(systemName: "book.fill")
+                        }
+                        .tag(3)
+                    
+                    AccountPage()
+                        .tabItem {
+                            Image(systemName: "person.crop.circle.fill")
+                        }
+                        .tag(4)
                 }
-                .tabItem {
-                    Image(systemName: "person.3.fill")
+                .tint(Color.accentDarkBlue)
+                .onAppear {
+                    
                 }
-                .tag(2)
-                
-                TefillinEducationView()
-                .tabItem {
-                    Image(systemName: "book.fill")
-                }
-                .tag(3)
-                
-                AccountPage()
-                .tabItem {
-                    Image(systemName: "person.crop.circle.fill")
-                }
-                .tag(4)
             }
-            .tint(Color.accentDarkBlue)
         } else {
             LaunchView()
         }
     }
-}
-
-#Preview {
-    HomePage()
-        .environment(ContentModel())
 }

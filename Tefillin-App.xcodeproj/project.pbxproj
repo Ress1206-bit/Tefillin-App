@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		6B0B15C22CA1DD20006EF31D /* EULAView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6B0B15C12CA1DD20006EF31D /* EULAView.swift */; };
 		6B2F74B52C2931840011AAFD /* FeedView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6B2F74B42C2931840011AAFD /* FeedView.swift */; };
 		6B2F74B72C2932510011AAFD /* PostView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6B2F74B62C2932510011AAFD /* PostView.swift */; };
 		6B33B6332C2FA296001E97AC /* GroupFeedView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6B33B6322C2FA296001E97AC /* GroupFeedView.swift */; };
@@ -43,6 +44,7 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		6B0B15C12CA1DD20006EF31D /* EULAView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EULAView.swift; sourceTree = "<group>"; };
 		6B2F74B42C2931840011AAFD /* FeedView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeedView.swift; sourceTree = "<group>"; };
 		6B2F74B62C2932510011AAFD /* PostView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PostView.swift; sourceTree = "<group>"; };
 		6B33B6322C2FA296001E97AC /* GroupFeedView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GroupFeedView.swift; sourceTree = "<group>"; };
@@ -166,6 +168,7 @@
 			isa = PBXGroup;
 			children = (
 				6B6B936A2C2897CC00AAAE93 /* LoginForm.swift */,
+				6B0B15C12CA1DD20006EF31D /* EULAView.swift */,
 				6B6B936C2C289C2100AAAE93 /* CreateAccountForm.swift */,
 			);
 			path = Forms;
@@ -305,6 +308,7 @@
 				6B2F74B52C2931840011AAFD /* FeedView.swift in Sources */,
 				6B6B93482C287D7600AAAE93 /* HomePage.swift in Sources */,
 				6BDD37C02C2A66B4006BB4EE /* GroupView.swift in Sources */,
+				6B0B15C22CA1DD20006EF31D /* EULAView.swift in Sources */,
 				6B6B936B2C2897CC00AAAE93 /* LoginForm.swift in Sources */,
 				6B6B93742C28CDCD00AAAE93 /* LaunchView.swift in Sources */,
 				6B6B938B2C28FE9100AAAE93 /* ImageUploadView.swift in Sources */,

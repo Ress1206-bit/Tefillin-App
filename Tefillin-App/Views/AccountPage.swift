@@ -17,6 +17,7 @@ struct AccountPage: View {
     @State private var posts: [Post] = []
     @State private var postImages: [String: UIImage] = [:]
     @State private var selectedPost: Post?
+    @State private var showSettingsSheet = false
     
     let columns = [
         GridItem(.flexible()), GridItem(.flexible()), GridItem(.flexible())
@@ -32,15 +33,15 @@ struct AccountPage: View {
                     
                 Spacer()
                 Button(action: {
-                    try! Auth.auth().signOut()
-                    contentModel.checkLogin()
+                    showSettingsSheet = true
                 }) {
-                    Text("Sign Out")
-                        .font(.custom("Avenir-Heavy", size: 16))
-                        .frame(width: 150)
-                        .foregroundColor(.red)
-                        .cornerRadius(10)
-                        .shadow(radius: 5)
+                    Image(systemName: "gearshape.fill")
+                        .font(.system(size: 24))
+                        .foregroundColor(.primary)
+                        .padding(.trailing)
+                }
+                .sheet(isPresented: $showSettingsSheet) {
+                    SettingsView()
                 }
             }
             
@@ -59,7 +60,7 @@ struct AccountPage: View {
                                     Image(uiImage: image)
                                         .resizable()
                                         .aspectRatio(contentMode: .fill)
-                                        .frame(width: 150*0.75, height: 150)
+                                        .frame(width: 150 * 0.75, height: 150)
                                         .clipShape(RoundedRectangle(cornerRadius: 10))
                                         .clipped()
                                         .shadow(radius: 1)
@@ -67,7 +68,6 @@ struct AccountPage: View {
                                             selectedPost = post
                                         }
                                 } else {
-                                    
                                     Rectangle()
                                         .fill(Color.accentBlue.opacity(0.2))
                                         .aspectRatio(0.75, contentMode: .fit)
@@ -94,7 +94,6 @@ struct AccountPage: View {
                 if let user = user {
                     posts = await contentModel.fetchUserPosts(userPostIds: user.postIds)
                     
-
                     for post in posts {
                         if let image = await contentModel.fetchImageFromPath(path: post.imageReference) {
                             postImages[post.id ?? ""] = image
@@ -104,6 +103,73 @@ struct AccountPage: View {
             }
         }
     }
+}
+
+struct SettingsView: View {
+    @Environment(ContentModel.self) private var contentModel
+    @Environment(\.presentationMode) var presentationMode
+    @State private var blockedUsers: [User] = []
+
+    var body: some View {
+        NavigationView {
+            List {
+                Section(header: Text("Blocked Users")) {
+                    if blockedUsers.isEmpty {
+                        Text("No blocked users")
+                            .foregroundColor(.gray)
+                    } else {
+                        ForEach(blockedUsers, id: \.id) { user in
+                            HStack {
+                                Text(user.username)
+                                Spacer()
+                                Button("Unblock") {
+                                    contentModel.unblockUser(user.id ?? "")
+                                    loadBlockedUsers()
+                                }
+                                .foregroundColor(.red)
+                            }
+                        }
+                    }
+                }
+                
+                Section {
+                    Button("Sign Out") {
+                        try! Auth.auth().signOut()
+                        contentModel.checkLogin()
+                        presentationMode.wrappedValue.dismiss()
+                    }
+                    .foregroundColor(.red)
+                }
+            }
+            .navigationTitle("Settings")
+            .onAppear {
+                loadBlockedUsers()
+            }
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("Done") {
+                        presentationMode.wrappedValue.dismiss()
+                    }
+                }
+            }
+        }
+    }
+
+    private func loadBlockedUsers() {
+        Task {
+            let blockedUserIds = await contentModel.fetchBlockedUsers()
+            var users: [User] = []
+            
+            for userId in blockedUserIds {
+                let user = await contentModel.fetchUserInfo(userID: userId)
+                users.append(user)
+            }
+            
+            blockedUsers = users
+        }
+    }
+
+
 }
 
 #Preview {
