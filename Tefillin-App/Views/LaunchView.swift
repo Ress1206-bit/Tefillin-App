@@ -44,7 +44,10 @@ struct LaunchView: View {
                         .padding(.horizontal)
                         .shadow(color: .gray.opacity(0.5), radius: 10, x: 0, y: 10)
                 }
-                .sheet(isPresented: $loginFormShowing, onDismiss: contentModel.checkLogin) {
+                .sheet(isPresented: $loginFormShowing, onDismiss: {
+                    contentModel.checkLogin()
+                    contentModel.checkEULA()
+                }) {
                     LoginForm(formShowing: $loginFormShowing)
                 }
                 .padding(.bottom, 20)
@@ -65,7 +68,10 @@ struct LaunchView: View {
                         .padding(.horizontal)
                         .shadow(color: .gray.opacity(0.5), radius: 10, x: 0, y: 10)
                 }
-                .sheet(isPresented: $createFormShowing, onDismiss: contentModel.checkLogin) {
+                .sheet(isPresented: $createFormShowing, onDismiss: {
+                    contentModel.checkLogin()
+                    contentModel.checkEULA()
+                }) {
                     CreateAccountForm(formShowing: $createFormShowing)
                 }
                 .opacity(isAnimating ? 1 : 0)
@@ -127,6 +133,7 @@ struct LaunchView: View {
             )
             .onAppear {
                 contentModel.checkLogin()
+                contentModel.checkEULA()
                 withAnimation {
                     isAnimating = true
                 }

@@ -14,7 +14,7 @@ import FirebaseStorage
 class ContentModel {
     
     var loggedIn = false
-    var agreedToEULA = false
+    var agreedToEULA = true //give them the benefit of the doubt haha :)
     
     let db = Firestore.firestore()
     
@@ -547,7 +547,48 @@ class ContentModel {
     }
     
     func agreeToEULA() {
-        agreedToEULA = true
+        guard let currentUserID = Auth.auth().currentUser?.uid else {
+            print("Error: No user is currently logged in.")
+            return
+        }
+
+        let db = Firestore.firestore()
+        let userDocRef = db.collection("users").document(currentUserID)
+
+        userDocRef.updateData(["agreedToEULA": true]) { error in
+            if let error = error {
+                print(error)
+            } else {
+                self.agreedToEULA = true
+            }
+        }
+    }
+    
+    func checkEULA() {
+        guard let currentUserID = Auth.auth().currentUser?.uid else {
+            print("Error: No user is currently logged in.")
+            return
+        }
+
+        let db = Firestore.firestore()
+        let userDocRef = db.collection("users").document(currentUserID)
+
+        userDocRef.getDocument { (document, error) in
+            if let error = error {
+                print("Error fetching EULA agreement: \(error)")
+                return
+            }
+
+            if let document = document, document.exists {
+                if let agreedToEULA = document.data()?["agreedToEULA"] as? Bool {
+                    self.agreedToEULA = agreedToEULA
+                } else {
+                    self.agreedToEULA = false
+                }
+            } else {
+                self.agreedToEULA = false
+            }
+        }
     }
 
 }

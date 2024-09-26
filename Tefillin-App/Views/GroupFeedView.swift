@@ -108,6 +108,14 @@ struct GroupFeedView: View {
                             searchedForGroups = true
                         }
                     }
+                    .onChange(of: selectedTab) { oldTab, newTab in
+                        if newTab == 0 {
+                            Task {
+                                groups = await contentModel.fetchUserGroups()
+                                searchedForGroups = true
+                            }
+                        }
+                    }
                 }
             }
         } else {

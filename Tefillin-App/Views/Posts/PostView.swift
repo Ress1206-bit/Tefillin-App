@@ -50,7 +50,7 @@ struct PostView: View {
                         .rotationEffect(.degrees(90))
                         .font(.system(size: 20))
                         .foregroundColor(.accentDarkBlue)
-                        .padding(.trailing)
+                        .padding(25)
                 }
             }
             .padding(.leading)

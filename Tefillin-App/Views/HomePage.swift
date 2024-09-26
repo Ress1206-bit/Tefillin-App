@@ -17,53 +17,45 @@ struct HomePage: View {
     
     @State private var selectedTab: Int = 0
     
-    @State var agreedToEULA = true
-    
     var body: some View {
-        if contentModel.loggedIn {
-            if !agreedToEULA {
-                EULAView(agreedToEULA: $agreedToEULA)
-            } else {
-                TabView(selection: $selectedTab) {
-                    GroupFeedView(selectedTab: $selectedTab)
-                        .tabItem {
-                            Image(systemName: "house.fill")
-                        }
-                        .tag(0)
-                    
-                    UploadPostView(selectedTab: $selectedTab)
-                        .tabItem {
-                            Image(systemName: "plus.app")
-                        }
-                        .tag(1)
-                    
-                    VStack {
-                        GroupsView(selectedTab: $selectedTab)
-                        Spacer()
-                    }
+        if contentModel.loggedIn && contentModel.agreedToEULA {
+            TabView(selection: $selectedTab) {
+                GroupFeedView(selectedTab: $selectedTab)
                     .tabItem {
-                        Image(systemName: "person.3.fill")
+                        Image(systemName: "house.fill")
                     }
-                    .tag(2)
-                    
-                    TefillinEducationView()
-                        .tabItem {
-                            Image(systemName: "book.fill")
-                        }
-                        .tag(3)
-                    
-                    AccountPage()
-                        .tabItem {
-                            Image(systemName: "person.crop.circle.fill")
-                        }
-                        .tag(4)
+                    .tag(0)
+                
+                UploadPostView(selectedTab: $selectedTab)
+                    .tabItem {
+                        Image(systemName: "plus.app")
+                    }
+                    .tag(1)
+                
+                VStack {
+                    GroupsView(selectedTab: $selectedTab)
+                    Spacer()
                 }
-                .tint(Color.accentDarkBlue)
-                .onAppear {
-                    
+                .tabItem {
+                    Image(systemName: "person.3.fill")
                 }
+                .tag(2)
+                
+                TefillinEducationView()
+                    .tabItem {
+                        Image(systemName: "book.fill")
+                    }
+                    .tag(3)
+                
+                AccountPage()
+                    .tabItem {
+                        Image(systemName: "person.crop.circle.fill")
+                    }
+                    .tag(4)
             }
-        } else {
+                .tint(Color.accentDarkBlue)
+        }
+        else {
             LaunchView()
         }
     }
